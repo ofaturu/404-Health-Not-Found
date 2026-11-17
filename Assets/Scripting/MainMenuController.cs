@@ -5,117 +5,222 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
+    // ==========================================
+    // SCENE SETTINGS
+    // ==========================================
+
     [Header("Scene Settings")]
     [SerializeField] private string firstLevelScene = "Level1";
 
-    [Header("Menu Buttons")]
+
+    // ==========================================
+    // MAIN MENU PANEL
+    // ==========================================
+
+    [Header("Main Menu")]
+    [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private Button continueButton;
 
-    [Header("Menu Panels")]
-    [SerializeField] private GameObject mainMenuPanel;
+
+    // ==========================================
+    // OTHER PANELS
+    // ==========================================
+
+    [Header("Other Panels")]
     [SerializeField] private GameObject howToPlayPanel;
     [SerializeField] private GameObject settingsPanel;
+
+
+    // ==========================================
+    // AUDIO SETTINGS
+    // ==========================================
 
     [Header("Audio Settings")]
     [SerializeField] private Slider musicSlider;
     [SerializeField] private AudioSource musicSource;
 
-    private const string SAVE_SCENE_KEY = "SavedScene";
-    private const string MUSIC_VOLUME_KEY = "MusicVolume";
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
 
     private void Start()
     {
         ShowMainMenu();
-        UpdateContinueButton();
         LoadSettings();
+        UpdateContinueButton();
     }
 
+
+    // ==========================================
     // NEW GAME
+    // ==========================================
+
     public void NewGame()
     {
-        PlayerPrefs.DeleteKey(SAVE_SCENE_KEY);
-        PlayerPrefs.Save();
+        Debug.Log("Starting New Game...");
+
+        GameProgress.ClearProgress();
 
         Time.timeScale = 1f;
+
         SceneManager.LoadScene(firstLevelScene);
     }
 
-    // CONTINUE
+
+    // ==========================================
+    // CONTINUE GAME
+    // ==========================================
+
     public void ContinueGame()
     {
-        string savedScene = PlayerPrefs.GetString(
-            SAVE_SCENE_KEY, ""
-        );
-
-        if (!string.IsNullOrEmpty(savedScene))
+        if (!GameProgress.HasProgress())
         {
+            Debug.LogWarning("No saved progress found!");
+            UpdateContinueButton();
+            return;
+        }
+
+        string savedScene = GameProgress.GetSavedScene();
+
+        if (string.IsNullOrEmpty(savedScene))
+        {
+            Debug.LogWarning("Saved scene is empty!");
+            return;
+        }
+
+        if (Application.CanStreamedLevelBeLoaded(savedScene))
+        {
+            Debug.Log("Continuing: " + savedScene);
+
             Time.timeScale = 1f;
+
             SceneManager.LoadScene(savedScene);
+        }
+        else
+        {
+            Debug.LogError(
+                "Scene not found in Build Profiles: " + savedScene
+            );
         }
     }
 
+
+    // ==========================================
     // HOW TO PLAY
+    // ==========================================
+
     public void OpenHowToPlay()
     {
+        Debug.Log("Opening How To Play...");
+
         mainMenuPanel.SetActive(false);
         howToPlayPanel.SetActive(true);
         settingsPanel.SetActive(false);
     }
 
+
+    // ==========================================
     // SETTINGS
+    // ==========================================
+
     public void OpenSettings()
     {
+        Debug.Log("Opening Settings...");
+
         mainMenuPanel.SetActive(false);
         howToPlayPanel.SetActive(false);
         settingsPanel.SetActive(true);
     }
 
+
+    // ==========================================
     // BACK TO MAIN MENU
+    // ==========================================
+
+    public void BackToMainMenu()
+    {
+        ShowMainMenu();
+    }
+
+
+    // ==========================================
+    // SHOW MAIN MENU
+    // ==========================================
+
     public void ShowMainMenu()
     {
         mainMenuPanel.SetActive(true);
         howToPlayPanel.SetActive(false);
         settingsPanel.SetActive(false);
+
+        UpdateContinueButton();
+
+        Debug.Log("Main Menu Opened!");
     }
 
+
+    // ==========================================
     // EXIT GAME
+    // ==========================================
+
     public void ExitGame()
     {
-        Debug.Log("Game Closed");
+        Debug.Log("Exiting Game...");
+
+        Time.timeScale = 1f;
 
         Application.Quit();
     }
 
-    // UPDATE CONTINUE BUTTON
-    private void UpdateContinueButton()
+
+    // ==========================================
+    // CONTINUE BUTTON STATE
+    // ==========================================
+
+    public void UpdateContinueButton()
     {
-        if (continueButton == null) return;
+        if (continueButton == null)
+            return;
 
-        bool hasSave = PlayerPrefs.HasKey(SAVE_SCENE_KEY);
-
-        continueButton.interactable = hasSave;
+        continueButton.interactable = GameProgress.HasProgress();
     }
 
+
+    // ==========================================
     // MUSIC VOLUME
+    // ==========================================
+
     public void SetMusicVolume(float volume)
     {
-        if (musicSource != null)
-            musicSource.volume = volume;
+        volume = Mathf.Clamp01(volume);
 
-        PlayerPrefs.SetFloat(MUSIC_VOLUME_KEY, volume);
+        if (musicSource != null)
+        {
+            musicSource.volume = volume;
+        }
+
+        PlayerPrefs.SetFloat("MusicVolume", volume);
         PlayerPrefs.Save();
     }
 
+
+    // ==========================================
+    // LOAD SETTINGS
+    // ==========================================
+
     private void LoadSettings()
     {
-        float volume = PlayerPrefs.GetFloat(
-            MUSIC_VOLUME_KEY, 0.5f
-        );
+        float volume = PlayerPrefs.GetFloat("MusicVolume", 0.5f);
 
         if (musicSlider != null)
-            musicSlider.value = volume;
+        {
+            musicSlider.SetValueWithoutNotify(volume);
+        }
 
         if (musicSource != null)
+        {
             musicSource.volume = volume;
+        }
     }
 }

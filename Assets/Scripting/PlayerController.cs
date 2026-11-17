@@ -1,18 +1,30 @@
+
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
+    // ==========================================
+    // MOVEMENT SETTINGS
+    // ==========================================
+
     [Header("Movement Settings")]
     public float speed = 5f;
     public float jumpSpeed = 8f;
     public float fallThreshold = -10f;
 
     private float direction;
+
     private Rigidbody2D mc;
     private SpriteRenderer spriteRenderer;
     private Animator playerAnimation;
 
     private Vector3 respawnPoint;
+
+
+    // ==========================================
+    // GROUND CHECK
+    // ==========================================
 
     [Header("Ground Check")]
     public Transform groundCheck;
@@ -20,18 +32,37 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer;
 
     private bool isTouchingGround;
+
+
+    // ==========================================
+    // MOVING PLATFORM
+    // ==========================================
+
     private MovingPlatform currentPlatform;
     private bool isStandingOnMovingPlatform;
+
+
+    // ==========================================
+    // COMBAT SETTINGS
+    // ==========================================
 
     [Header("Combat Settings")]
     public GameObject laptopPrefab;
     public Transform throwPoint;
+
     public bool canMove = true;
+
+
+    // ==========================================
+    // INITIALIZATION
+    // ==========================================
 
     private void Awake()
     {
         mc = GetComponent<Rigidbody2D>();
+
         spriteRenderer = GetComponent<SpriteRenderer>();
+
         playerAnimation = GetComponent<Animator>();
     }
 
@@ -40,17 +71,23 @@ public class PlayerController : MonoBehaviour
         respawnPoint = transform.position;
     }
 
+
+    // ==========================================
+    // UPDATE
+    // ==========================================
+
     private void Update()
     {
         if (mc == null)
             return;
 
-        // Baca input gerakan.
+        // Horizontal Input
         direction = canMove
             ? Input.GetAxisRaw("Horizontal")
             : 0f;
 
-        // Deteksi tanah.
+
+        // Ground Detection
         bool groundDetected = false;
 
         if (groundCheck != null)
@@ -65,7 +102,8 @@ public class PlayerController : MonoBehaviour
         isTouchingGround =
             groundDetected || isStandingOnMovingPlatform;
 
-        // Lompat.
+
+        // Jump
         if (canMove &&
             Input.GetButtonDown("Jump") &&
             isTouchingGround)
@@ -75,37 +113,51 @@ public class PlayerController : MonoBehaviour
                 jumpSpeed
             );
 
-            // Lepaskan platform saat mulai melompat.
+            // Release Moving Platform
             currentPlatform = null;
+
             isStandingOnMovingPlatform = false;
+
             isTouchingGround = false;
         }
 
-        // Balik sprite sesuai arah gerakan.
+
+        // Character Flip
         if (spriteRenderer != null)
         {
             if (direction < 0f)
+            {
                 spriteRenderer.flipX = true;
+            }
             else if (direction > 0f)
+            {
                 spriteRenderer.flipX = false;
+            }
         }
 
-        // Respawn jika jatuh keluar map.
+
+        // Fall Detection
         if (transform.position.y < fallThreshold)
         {
             Respawn();
             return;
         }
 
+
+        // Update Animation
         UpdateAnimation();
     }
+
+
+    // ==========================================
+    // FIXED UPDATE
+    // ==========================================
 
     private void FixedUpdate()
     {
         if (mc == null)
             return;
 
-        // Gerakan horizontal karakter.
         float horizontalVelocity = canMove
             ? direction * speed
             : 0f;
@@ -116,13 +168,16 @@ public class PlayerController : MonoBehaviour
         );
     }
 
+
+    // ==========================================
+    // MOVING PLATFORM FOLLOW
+    // ==========================================
+
     private void LateUpdate()
     {
         if (mc == null)
             return;
 
-        // Terapkan perpindahan platform setelah animasi platform
-        // memperbarui Transform-nya.
         if (currentPlatform != null &&
             isStandingOnMovingPlatform &&
             isTouchingGround)
@@ -135,6 +190,11 @@ public class PlayerController : MonoBehaviour
             );
         }
     }
+
+
+    // ==========================================
+    // ANIMATION
+    // ==========================================
 
     private void UpdateAnimation()
     {
@@ -152,47 +212,75 @@ public class PlayerController : MonoBehaviour
         );
     }
 
+
+    // ==========================================
+    // COLLISION ENTER
+    // ==========================================
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         CheckMovingPlatform(collision);
     }
+
+
+    // ==========================================
+    // COLLISION STAY
+    // ==========================================
 
     private void OnCollisionStay2D(Collision2D collision)
     {
         CheckMovingPlatform(collision);
     }
 
+
+    // ==========================================
+    // COLLISION EXIT
+    // ==========================================
+
     private void OnCollisionExit2D(Collision2D collision)
     {
         MovingPlatform platform =
-            collision.gameObject.GetComponent<MovingPlatform>();
+            collision.gameObject.GetComponentInParent<MovingPlatform>();
 
         if (platform != null && currentPlatform == platform)
         {
             currentPlatform = null;
+
             isStandingOnMovingPlatform = false;
         }
     }
 
+
+    // ==========================================
+    // CHECK MOVING PLATFORM
+    // ==========================================
+
     private void CheckMovingPlatform(Collision2D collision)
     {
         MovingPlatform platform =
-            collision.gameObject.GetComponent<MovingPlatform>();
+            collision.gameObject.GetComponentInParent<MovingPlatform>();
 
         if (platform == null)
             return;
 
         foreach (ContactPoint2D contact in collision.contacts)
         {
-            // Pastikan MC menyentuh permukaan atas platform.
+            // Detect contact from the upper surface.
             if (contact.normal.y > 0.5f)
             {
                 currentPlatform = platform;
+
                 isStandingOnMovingPlatform = true;
+
                 return;
             }
         }
     }
+
+
+    // ==========================================
+    // TRIGGER DETECTION
+    // ==========================================
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -202,19 +290,41 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    // ==========================================
+    // RESPAWN
+    // ==========================================
+
     public void Respawn()
     {
         currentPlatform = null;
+
         isStandingOnMovingPlatform = false;
+
         isTouchingGround = false;
+
+        direction = 0f;
 
         if (mc != null)
         {
             mc.velocity = Vector2.zero;
+
+            mc.angularVelocity = 0f;
+
+            mc.position = respawnPoint;
+        }
+        else
+        {
+            transform.position = respawnPoint;
         }
 
-        transform.position = respawnPoint;
+        Debug.Log("Player Respawned!");
     }
+
+
+    // ==========================================
+    // THROW LAPTOP
+    // ==========================================
 
     public void ThrowLaptop()
     {
@@ -233,6 +343,11 @@ public class PlayerController : MonoBehaviour
             );
         }
     }
+
+
+    // ==========================================
+    // GROUND CHECK GIZMOS
+    // ==========================================
 
     private void OnDrawGizmosSelected()
     {
