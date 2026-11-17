@@ -3122,6 +3122,7 @@ GameObject:
   - component: {fileID: 548486703}
   - component: {fileID: 548486702}
   - component: {fileID: 548486701}
+  - component: {fileID: 548486713}
   m_Layer: 0
   m_Name: mc
   m_TagString: Player
@@ -3381,6 +3382,20 @@ Transform:
   - {fileID: 1990984990}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &548486713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 548486700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 330811555ee749843b97dd9cf933f3a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pickupPrompt: {fileID: 729303481}
+  respawnSystem: {fileID: 548486703}
 --- !u!1 &573683220
 GameObject:
   m_ObjectHideFlags: 0
@@ -14031,7 +14046,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: 1200943984, guid: ce9c69173eab31445beb7904c49d1de0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -18006,7 +18021,7 @@ Transform:
   m_GameObject: {fileID: 2075895475}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.52, y: 2.35, z: -10}
+  m_LocalPosition: {x: 1.52, y: 2.58, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
