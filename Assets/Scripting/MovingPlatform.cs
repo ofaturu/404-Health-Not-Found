@@ -1,24 +1,26 @@
+
 using UnityEngine;
 
-[DefaultExecutionOrder(100)]
-public class MovingPlatform : MonoBehaviour
+public static class GameProgress
 {
-    private Vector3 previousPosition;
+    private const string SAVE_SCENE_KEY = "SavedScene";
 
-    public Vector3 PlatformDelta { get; private set; }
-
-    private void Awake()
+    public static void SaveCurrentScene()
     {
-        previousPosition = transform.position;
-        PlatformDelta = Vector3.zero;
+        PlayerPrefs.SetString(
+            SAVE_SCENE_KEY,
+            UnityEngine.SceneManagement.SceneManager
+                .GetActiveScene().name
+        );
+
+        PlayerPrefs.Save();
+
+        Debug.Log("Progress Saved!");
     }
 
-    private void LateUpdate()
+    public static void ClearProgress()
     {
-        Vector3 currentPosition = transform.position;
-
-        PlatformDelta = currentPosition - previousPosition;
-        previousPosition = currentPosition;
+        PlayerPrefs.DeleteKey(SAVE_SCENE_KEY);
+        PlayerPrefs.Save();
     }
-
 }
