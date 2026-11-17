@@ -1,0 +1,8 @@
+StationSupply - Winter Village Asset License
+Copyright 2026 StationSupply. Commercial and personal use in games and other finished creative
+projects is permitted, including modification. No royalties or attribution required.
+You may distribute assets embedded in a finished project, but may not resell, repackage,
+share or redistribute these assets as standalone files or an asset pack, as-is or modified.
+Contractors may access them only for your project and may not reuse or redistribute them separately.
+This license applies equally to the free sample. Assets are supplied without warranty.
+AI-assisted graphics: generated with AI, converted to pixel art, then fitted and cleaned.
